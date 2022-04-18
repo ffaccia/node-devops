@@ -1,0 +1,290 @@
+#difference between RUN and CMD:
+RUN is an image build step, the state of the container after a RUN
+ command will be committed to the container image. A Dockerfile can 
+ have many RUN steps that layer on top of one another to build the image.
+
+CMD is the command the container executes by default when you launch 
+the built image. A Dockerfile will only use the final CMD defined. 
+The CMD can be overridden when starting a container with docker 
+run $image $other_command. 
+
+
+
+
+FROM node:15
+WORKDIR /app
+
+#little trick to speedup the process: since dependencies do not change very
+#often and the result are cached this step is bypassed
+COPY package.json .
+
+RUN npm install
+
+#since our code is the only part that is going to change very frequently i decoupled that
+#from copying package.json so it's probable that it's going to use the cached result
+#and this copy will take infinite less time 
+COPY . ./
+
+EXPOSE 3000
+
+CMD ["node", "index.js"]
+
+
+docker build -t $imageName .
+docker build -t node-devops .
+
+
+docker run -d -p 3000:3000 --name $containerNameProcessList $imageName
+docker run -d -p 3000:3000 --name node-devops node-devops
+
+
+run started and finished almost at the same time
+to see where the error is start in attach mode to see the real message (or check the logs)
+the error was a comma missing in the CMD row between node and index.js
+
+
+
+to see logs:
+    docker logs $containerName
+    docker logs node-devops
+
+
+
+to attach an interactive terminal on a running container: 
+    docker exec -it node-devops bash
+
+
+to attach a persistent volume pointing from local dir to /app
+    docker run -v $(pwd):/app -d -p 3000:3000 --name node-devops node-devops
+
+
+after running 
+docker run -v $(pwd):/app -d -p 3000:3000 --name node-devops node-devops
+the instructor deleted local no_modules folder but since we synced our local folder with /app
+the app ended up broken
+
+the workaround is to create a second volume. an anonymous one with more specificity like: /app/node_modules.
+docker is going to give it a random name so it cannot possibly be accidentaly deleted
+
+    docker run -v $(pwd):/app -v /app/node_modules -d -p 3000:3000 --name node-devops node-devops
+
+to preserve our folders from accidental write inside the container we can add the "ro" (read only) attribute like
+    docker run -v $(pwd):/app:ro -v /app/node_modules -d -p 3000:3000 --name node-devops node-devops
+
+francesco@debian:~/prjs/devops$     docker exec -it node-devops bash
+root@1f5167811c39:/app# touch fra
+touch: cannot touch 'fra': Read-only file system
+
+
+to pass environment variables use --env PORT=$number
+and remember to add the line on Dockerfile 
+    docker run -v $(pwd):/app:ro -v /app/node_modules -d --env PORT=4000 -p 3000:4000 --name node-devops node-devops
+
+    #(default to 3000 if port is null)
+    ENV PORT 3000
+
+    EXPOSE $PORT
+
+
+or we can use a env_file
+        docker run -v $(pwd):/app:ro -v /app/node_modules -d --env-file ./.env -p 3000:4000 --name node-devops node-devops
+
+
+to stop a container 
+    docker stop $container_id
+
+
+once inside the container with exec check environment variables with "printenv"
+
+YARN_VERSION=1.22.5
+HOSTNAME=8fb71984487d
+PWD=/app
+HOME=/root
+PORT=4000
+NODE_VERSION=15.14.0
+TERM=xterm
+SHLVL=1
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+_=/usr/bin/env
+
+delete unnecessary volumes, all those volumes without an effective existing container
+docker volume prune
+
+
+but if we want to kill the container as long as with the attached volume pass -v flag
+docker rm -fv $container_id
+
+
+alias drun="docker run -v $(pwd):/app:ro -v /app/node_modules -d --env PORT=4000 -p 3000:4000 --name node-devops node-devops"
+drun
+
+
+alias drun="docker run -v $(pwd):/app:ro -v /app/node_modules -d --env-file ./.env -p 3000:4000 --name node-devops node-devops"
+drun
+
+
+
+to install docker-compose:
+    download https://github.com/docker/compose/releases/download/v2.3.4/docker-compose-linux-x86_64
+    rename into /usr/bin/docker-compose
+    chmod +x 
+
+start container from docker-compose.yml
+    docker-compose up --detach
+
+
+stop a container run from compose
+francesco@debian:~/prjs/devops$ docker-compose down -v
+[+] Running 2/2
+ ⠿ Container devops-node-devops-1  Removed                                                                    2.1s
+ ⠿ Network devops_default          Removed                                                                    0.7s
+
+
+if some modification has been made to the images a force rebuild must be issued
+    docker-compose up -d --build
+
+
+#20220404:
+#made 3 docker-compose.yml file. a base one: docker-compose.yml
+version: "3"
+services:
+  node-devops:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+
+#then one for dev and one for prod each one with its own specificities
+
+#to build and take it up
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+#and now to take it down -v remove network or volume ?
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
+
+
+alias dc_devu="docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d $1 $2"
+alias dc_produ="docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d $1 $2"
+alias dc_devd="docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v"
+alias dc_prodd="docker-compose -f docker-compose.yml -f docker-compose.prod.yml down -v"
+
+alias dexec="docker exec -it devops-node-devops-1 bash" 
+alias dexdev="docker exec -it devops-node-devops-1 bash" 
+alias dexmon="docker exec -it devops-mongo-1 bash" 
+alias dexmonu='mongo -u "francesco" -p "password"'
+
+
+
+this hack doesn't work. i don't know what i'm doing wrong but the same number of packages are get installed 
+either by npm install and npm install --only=[production|prod] (i tried both)
+but i found a working solution: entering into container and issuing npm prune --production entirely remove 
+all devDependencies.
+
+RUN if [ "$NODE_ENV" = "development" ]; \
+        then npm install; \
+        else npm install --only=prod; \
+        fi
+
+
+https://www.youtube.com/watch?v=9zUHg7xjIqQ
+
+
+#20220410
+
+now in docker-compose.yml has added anothe service:
+  mongo:
+    image: mongo       #not build because we take it directly from docker hub
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=francesco
+      - MONGO_INITDB_ROOT_PASSWORD=password
+
+running dc_devu started pulling automatically
+
+dexmon 
+mongo -u "francesco" -p "password"
+
+
+docker linux store data on /var/lib/docker
+docker windows instead rather store data docker ps -a
+on C:\ProgramData\DockerDesktop 
+
+to get rid of all unnecessary volumes do the following:
+start all needed containers and then run docker volume --prune 
+it'll be deleting all stale containers
+
+
+#now we install mongoose and rebuild it again
+npm i mongoose 
+dc_devu
+
+
+#20220411.
+ip address taken from docker inspect $container_id or NAMES (devops-node-devops-1)
+NetworkSettings.Networks.IPAddress 172.22.0.2
+
+but also can be taken from Dockercompose services  node-devops and mongo as connecting to custom networks activates
+DNS services, so "mongo" can be used as IpAddress 
+
+docker inspect $container_id
+docker logs $container_id
+
+
+
+#20220413 - 01:54
+created .config/config.js with environment variables. those are taken from docker-compose-dev.yml section "environment"
+
+
+
+#202215
+introducted depends_on: mongo on docker-compose
+it doens't completely solve our issue on which container get spun up first because it spun mongo first but when then node-app gets spun mongo cannot be 
+entirelly up and running
+
+
+implemented func: connectWithRetry 
+
+i can invoke a command to satr just a single container no matter the fact that in the compose files two are listed.
+that happens because in the docker-compose has been issued:
+    depends_on:
+      - mongo
+so when i run       
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d node-devops
+it brings up mongo too
+
+
+
+#20220418
+curl -X GET -d '{"title": 123456, "body": "francesco"}' -H "Content-Type: application/json" localhost:3000/api/v1/posts | json_pp 
+
+francesco@debian:~/prjs/devops$ curl -X GET localhost:3000/api/v1/posts |json_pp
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   352  100   352    0     0  39111      0 --:--:-- --:--:-- --:--:-- 39111
+{
+   "data" : {
+      "posts" : [
+         {
+            "__v" : 0,
+            "_id" : "625dc233dddf82446bc60125"
+         },
+         {
+            "_id" : "625dc25edddf82446bc60127",
+            "__v" : 0
+         },
+      ]
+   },
+   "status" : "success",
+   "results" : 2
+}
+
+
+curl -X POST -d '{"title": 123456, "body": "francesco"}' -H "Content-Type: application/json" localhost:3000/api/v1/posts
+
+curl -X GET localhost:3000/api/v1/posts/625dc233dddf82446bc60125
+
+curl -X PATCH -d '{"title": "2222", "body": "QQQQQQQQ"}' -H "Content-Type: application/json" localhost:3000/api/v1/posts/625dd281b507c9bd3bae9b3e
+
+625dd281b507c9bd3bae9b3e
+
+"_id":"625dc233dddf82446bc60125"
