@@ -174,7 +174,7 @@ alias dexdev="docker exec -it devops-node-devops-1 bash"
 alias dexmon="docker exec -it devops-mongo-1 bash" 
 alias dexmonu='mongo -u "francesco" -p "password"'
 
-
+alias dexred="docker exec -it devops-redis-1 redis-cli" 
 
 this hack doesn't work. i don't know what i'm doing wrong but the same number of packages are get installed 
 either by npm install and npm install --only=[production|prod] (i tried both)
@@ -288,3 +288,65 @@ curl -X PATCH -d '{"title": "2222", "body": "QQQQQQQQ"}' -H "Content-Type: appli
 625dd281b507c9bd3bae9b3e
 
 "_id":"625dc233dddf82446bc60125"
+
+
+
+#20220421: install bcryptjs, but in order to work properly it needed an upgrade of nodejs:
+
+sudo npm cache clean -f
+sudo npm install -g n
+sudo n stable
+To upgrade to latest version (and not current stable) version, you can use
+
+sudo n latest
+Fix PATH:
+
+  sudo apt-get install --reinstall nodejs-legacy     # fix /usr/bin/node
+To undo:
+
+  sudo n rm 6.0.0     # replace number with version of Node that was installed
+  sudo npm uninstall -g n
+
+
+
+curl -i -X POST -d '{"username": "francescone", "password": "password"}' -H "Content-Type: application/json" localhost:3000/api/v1/user/signup
+
+curl -i -X POST -d '{"username": "francescone", "password": "password"}' -H "Content-Type: application/json" localhost:3000/api/v1/user/login
+
+curl -i -X GET localhost:3000/api/v1/user/get/62670b540bc6524466d58de6
+
+
+curl --cookie "Name=Value" https://reqbin.com/echo
+
+curl -i -X POST --cookie "connect.sid=s%3AAOcLpODB0Q1CgYAFo_KTfGQqbZQ2kesO.zZ91%2Fy8%2FUm3jQwM9G167jx7kYkr%2FOIgLNTzuiCRjHrg"    -d '{"title": "lamela", "body": "ilcorpo"}' -H "Content-Type: application/json" localhost:3000/api/v1/posts
+
+
+
+
+
+
+#20220424. redis installation
+
+docker-compose
+
+  redis:
+    image: redis
+
+
+npm install redis connect-redis express-session
+
+
+
+
+
+
+
+
+
+
+11:44, 00:11
+
+aggiornamento software
+tecnico 
+reset 
+reset verifica linea
