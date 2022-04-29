@@ -1,0 +1,22 @@
+version: "3"
+services:
+  nginx:
+    ports:
+      - "3000:80"
+  node-devops: 
+    build:
+      context: .
+      args:                      #those are solely used by the build process 
+        NODE_ENV: development    #colon is used
+    volumes:
+      - ./:/app                  #regular volume
+      - /app/node_modules        #anonymous volume
+    environment:                 #those are passed through the application 
+      - NODE_ENV=development     #equal sign is used
+      - MONGO_USER=francesco
+      - MONGO_PASSWORD=password
+      - SESSION_SECRET=secret 
+
+    command:
+      npm run startdev
+    

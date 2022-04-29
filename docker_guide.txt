@@ -338,8 +338,107 @@ npm install redis connect-redis express-session
 
 
 
+#20220428. nginx installed 
+
+docker-compose.yml
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "3000:80"
+    volumes:
+      #not working directly mapping single file
+      #- ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - type: bind
+        source: ./nginx/default.conf
+        target: /etc/nginx/conf.d/default.conf
 
 
+
+./nginx/default.conf
+
+server {
+    listen 80;
+
+    location /api {
+
+        #nginx act as a proxy so strips original client ip address 
+        #like that we instruct it to set it on the header
+        proxy_set_header X-Real-IP $remote_addr;
+
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        proxy_set_header Host $http_host;
+        proxy_set_header X-NginX-Proxy true;
+        
+        proxy_pass http://node-app:3000;
+        proxy_redirect off;
+    }
+}
+
+
+
+#20220429
+
+scale application devops_node-devops
+
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --scale node-devops=2
+
+
+#split terminal to see refreshing logs 
+docker logs devops-node-devops-1 -f
+docker logs devops-node-devops-2 -f
+
+#send multiple requests that show up each time through a different terminal.
+
+curl -X GET localhost:3000/api/v1
+
+install cors to allow requests from different domain
+
+npm install cors
+
+when building node container as it uses anonymous volumes those must be recreated using the -V option
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build --help
+-V, --renew-anon-volumes        Recreate anonymous volumes instead of retrieving data from the previous containers.
+
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build -V
+
+
+const cors = require("cors")
+
+
+digital ocean password: _Chicco.70f
+
+ubuntu-node-devops-01
+
+public ip address: 46.101.238.111
+
+ssh root@46.101.238.111
+The authenticity of host '46.101.238.111 (46.101.238.111)' can't be established.
+ECDSA key fingerprint is SHA256:sW/HbVTqD0FAwl643Cgtk9nlBg3AcRWn6KWt21qNXEs.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '46.101.238.111' (ECDSA) to the list of known hosts.
+root@46.101.238.111's password: 
+Welcome to Ubuntu 20.04.4 LTS (GNU/Linux 5.4.0-107-generic x86_64)
+
+
+  System load:  0.0               Users logged in:       0
+  Usage of /:   6.2% of 24.06GB   IPv4 address for eth0: 46.101.238.111
+  Memory usage: 20%               IPv4 address for eth0: 10.19.0.5
+  Swap usage:   0%                IPv4 address for eth1: 10.114.0.2
+  Processes:    103
+
+
+
+go to https://get.docker.com/
+
+# This script is meant for quick & easy install via:
+#   $ curl -fsSL https://get.docker.com -o get-docker.sh
+#   $ sh get-docker.sh
+
+To run Docker as a non-privileged user, consider setting up the
+Docker daemon in rootless mode for your user:
+
+    dockerd-rootless-setuptool.sh install
 
 
 
@@ -350,3 +449,6 @@ aggiornamento software
 tecnico 
 reset 
 reset verifica linea
+
+
+

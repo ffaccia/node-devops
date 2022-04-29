@@ -48,6 +48,9 @@ const connectWithRetry = () => {
 
 connectWithRetry()
 
+app.enable("trust proxy")
+app.use(cors({}))
+
 app.use(
     session({
     store: new RedisStore({client: redisClient}),
@@ -75,6 +78,7 @@ app.use(express.json())
 
 app.get("/api/v1", (req, res) => {
     res.send("<h1 style='color:#444'>Hi there you4! (started again from docker-compose)</h1>");
+    console.log("yeah, it ran!")
 });
 
 

@@ -1,0 +1,15 @@
+version: "3"
+services:
+  nginx:
+    ports:
+      - "80:80"
+
+  node-devops:
+    build:
+      context: .
+      args: 
+        NODE_ENV: production     #colon 
+    environment:
+      - NODE_ENV=production      #equal sign
+    command:
+      node index.js
