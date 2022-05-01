@@ -442,6 +442,22 @@ Docker daemon in rootless mode for your user:
 
 
 
+#20220430
+
+    docke-compose-prod
+
+    environment:
+      - NODE_ENV=production      #equal sign
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - SESSION_SECRET=${SESSION_SECRET} 
+
+
+ mongo:
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}    
+
 
 11:44, 00:11
 
