@@ -23,8 +23,8 @@ services:
   mongo:
     image: mongo       #not build because we take it directly from docker hub
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=francesco
-      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_ROOT_USERNAME={MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD={MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongo-db:/data/db
 
