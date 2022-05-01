@@ -381,7 +381,8 @@ server {
 
 scale application devops_node-devops
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --scale node-devops=2
+alias scale2="docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --scale node-devops=2"
+
 
 
 #split terminal to see refreshing logs 
@@ -458,6 +459,28 @@ Docker daemon in rootless mode for your user:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}    
 
+<<<<<<< HEAD
+=======
+
+
+
+#20220501
+
+set -o 
+francesco@debian:~/prjs/devops$ set -o
+allexport       off
+braceexpand     on
+...
+...
+pipefail        off
+vi              off
+xtrace          off
+
+#allexport export a variable as soon as it gets defined, so no need to execute export pippo=1
+set -o allexport; source .env; set +o allexport
+
+
+>>>>>>> modify_from_ld_commmit
 
 11:44, 00:11
 
