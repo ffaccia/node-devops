@@ -445,7 +445,7 @@ Docker daemon in rootless mode for your user:
 
 #20220430
 
-    docke-compose-prod
+    docker-compose-prod
 
     environment:
       - NODE_ENV=production      #equal sign
@@ -459,28 +459,97 @@ Docker daemon in rootless mode for your user:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}    
 
-<<<<<<< HEAD
-=======
-
 
 
 #20220501
 
-set -o 
+
+#entropy, haveged
+docker wasn't running from online server because it lacked entropy for generating randon numbers.
+so installed haveged: apt install haveged
+
+https://github.com/docker/compose/issues/6678#issuecomment-526831488.
+https://stackoverflow.com/questions/59941911/docker-compose-up-hangs-forever-how-to-debug
+
+
 francesco@debian:~/prjs/devops$ set -o
 allexport       off
 braceexpand     on
+emacs           on
+errexit         off
+errtrace        off
+functrace       off
+hashall         on
+histexpand      on
+history         on
 ...
 ...
-pipefail        off
 vi              off
 xtrace          off
 
-#allexport export a variable as soon as it gets defined, so no need to execute export pippo=1
-set -o allexport; source .env; set +o allexport
+#automatic export of defined variables
+set -o allexport; source /root/.env; set +o allexport
 
 
->>>>>>> modify_from_ld_commmit
+
+
+#20220504
+
+
+alias dc_devu="docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d $1 $2"
+alias dc_produ="docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d $1 $2"
+alias dc_devd="docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v"
+alias dc_prodd="docker-compose -f docker-compose.yml -f docker-compose.prod.yml down -v"
+
+
+#there's an option that allow us to rebuild just a single service of our orchestration:
+#call docker-compose invoking the service like that:
+
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build node-devops
+
+#but if there are dependencies it builds those too. with --no-deps their building is skipped
+
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build --no-deps node-devops
+
+#force rebuild even if no modification occurred
+
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --force-recreate node-devops
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --force-recreate --no-deps node-devops
+
+
+#rename image to upload to docker hub. mandatory rule have it that name must be your namespace plus image name
+
+docker image tag devops_node-devops frankietheface/node-devops
+
+
+docker login: frankietheface Chicco.70
+
+docker push frankietheface/node-devops 
+
+inside docker-compose added:
+
+  node-devops:
+    build: .           #because we build our own image
+    image: frankietheface/node-devops:latest              # <---- image name for pulling 
+
+
+
+#20220505 
+
+it's also possible to push while docker-composing, or specifically at the ended
+
+#push all services
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml push
+
+#push asked service
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml push node-devops
+
+#if thee's a push there's a pull obviously...
+in production environment we can pull to see if in the repo there's a more recent version 
+
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
+
+
 
 11:44, 00:11
 
@@ -490,4 +559,18 @@ reset
 reset verifica linea
 
 
+server=46.101.238.111:80
+serverl=localhost:3000
+
+server=$serverl
+
+
+curl -i -X POST -d '{"username": "massimo", "password": "password"}' -H "Content-Type: application/json" ${server}/api/v1/user/signup
+
+prima login
+curl -i -X POST -d '{"username": "massimo", "password": "password"}' -H "Content-Type: application/json" ${server}/api/v1/user/login
+
+poi post
+cookie=s%3AnlYHwdLJLguQ8L9w02Aifzjk0-ebUJi5.9JctqdP5HrQNOwdSCwOzmpDLVjbWFEUxZEWxbznSjFE
+curl -i -X POST --cookie "connect.sid=$cookie"    -d '{"title": "lamela", "body": "ilcorpo"}' -H "Content-Type: application/json" 46.101.238.111:80/api/v1/posts
 

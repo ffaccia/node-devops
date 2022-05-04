@@ -34,6 +34,8 @@ const connOptions = {
     //useFindAndModify: false
 }
 
+console.log(mongoURL);
+
 const connectWithRetry = () => {
     mongoose
         .connect(mongoURL, connOptions)

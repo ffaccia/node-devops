@@ -13,6 +13,9 @@ services:
       #  read_only: true
   node-devops:
     build: .           #because we build our own image
+    image: frankietheface/node-devops:latest     #now we finishesìd and published the final image
+                                                 #so we can pull it from the hub
+                                                                                         
     #ports:                   #we have just installed nginx, all connnections go through it 
     #  - "3000-3001:3000"     #so no longer need node-devops open ports
     environment:
@@ -23,8 +26,8 @@ services:
   mongo:
     image: mongo       #not build because we take it directly from docker hub
     environment:
-      - MONGO_INITDB_ROOT_USERNAME={MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD={MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongo-db:/data/db
 
