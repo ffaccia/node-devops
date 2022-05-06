@@ -550,6 +550,56 @@ in production environment we can pull to see if in the repo there's a more recen
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
 
 
+root@ubuntu-node-devops-01:~/app/node-devops# docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull 
+Pulling nginx       ... done
+Pulling mongo       ... done
+Pulling node-devops ... done
+Pulling redis       ... done
+
+
+#use watchtower to monitor new image release
+docker run -d --name watchtower -e WATCHTOWER_TRACE=true \
+                                -e WATCHTOWER_DEBUG=true \
+                                -e WATCHTOWER_POLL_INTERVAL=50 \
+                                -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower \
+                                $container_to_watch
+
+docker run -d --name watchtower -e WATCHTOWER_TRACE=true \
+                                -e WATCHTOWER_DEBUG=true \
+                                -e WATCHTOWER_POLL_INTERVAL=86400 \
+                                -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower \
+                                node-devops_node-devops_1
+
+docker logs watchtower -f 
+
+ime="2022-05-05T21:23:21Z" level=trace msg="Setting request token" token="Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsIng1YyI6WyJNSUlDK1RDQ0FwK2dBd0lCQWdJQkFEQUtCZ2dxaGtqT1BRUURBakJHTVVRd1FnWURWUVFERXp0U1RVbEdPbEZNUmpRNlEwZFFNenBSTWtWYU9sRklSRUk2VkVkRlZUcFZTRlZNT2taTVZqUTZSMGRXV2pwQk5WUkhPbFJMTkZNNlVVeElTVEFlRncweU1qQXhNVEF5TWpJeE5EbGFGdzB5TXpBeE1qVXlNakl4TkRsYU1FWXhSREJDQmdOVkJBTVRPMUJaUTFJNlNWQmFRanBJUWxGWE9qZE1SVms2UWtGV1FqcEhTRGRhT2xWSVZ6TTZVa3RMVWpwRE4wNHpPbGxOTkZJNlNWaE5TRHBLVkZCQ01JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBbE5JOGFtMlBERnZzNndOeVl2d0dkZWZXVXJXQWdMZ3N2MzA2MnZycG5VNkN0WUpEZDZ2K2NEVG1FN1FlTllEaFMyaU1wU3djZkRCL2RFclEwdnhIZE4ycDIvODZmZy9TeWlIMnhmMGFVTjlDV1dud0JPaTIvS3hLditpbFNlQ01HYXRwRlg3SmYxcWI4N0Q5NUxOVDBvOU9OTmYxT3RidjY5ck9tL1RIVFh3clUvV3dTZlUyWktUbEw4SVRXRkRXN09ZK3hXdUJ0WUpteVhqcVpsaWRBbUNTdTdHY0Y0MVB5em9KTFFTMnJCdXJwOXc0cWgxMFk1bUNIcWdsaEI1Rk9aOUs0T2pUaVhUUHJFUk5WcnArUFVIR3JBYVRPRTBwQzgyUHBuWVZhNzNDUkdsMEdDdC9RckJwVjRpdmswdzF0eEtkV1NiSDNnRmtqZ2g1N0tOcDhRSURBUUFCbzRHeU1JR3ZNQTRHQTFVZER3RUIvd1FFQXdJSGdEQVBCZ05WSFNVRUNEQUdCZ1JWSFNVQU1FUUdBMVVkRGdROUJEdFFXVU5TT2tsUVdrSTZTRUpSVnpvM1RFVlpPa0pCVmtJNlIwZzNXanBWU0Zjek9sSkxTMUk2UXpkT016cFpUVFJTT2tsWVRVZzZTbFJRUWpCR0JnTlZIU01FUHpBOWdEdFNUVWxHT2xGTVJqUTZRMGRRTXpwUk1rVmFPbEZJUkVJNlZFZEZWVHBWU0ZWTU9rWk1WalE2UjBkV1dqcEJOVlJIT2xSTE5GTTZVVXhJU1RBS0JnZ3Foa2pPUFFRREFnTklBREJGQWlFQTdIY1VyVm1namo1cE01MXhZVHd2eGE1VnRqd2hub0dRZjFxTU52UGVHeVlDSUFwYm4vWFkvS1F5WWFWRnRjMWtsb0lmZzd4L3hlbkZhbkp4L0F2cURGdFgiXX0.eyJhY2Nlc3MiOlt7InR5cGUiOiJyZXBvc2l0b3J5IiwibmFtZSI6ImZyYW5raWV0aGVmYWNlL25vZGUtZGV2b3BzIiwiYWN0aW9ucyI6WyJwdWxsIl0sInBhcmFtZXRlcnMiOnsicHVsbF9saW1pdCI6IjEwMCIsInB1bGxfbGltaXRfaW50ZXJ2YWwiOiIyMTYwMCJ9fV0sImF1ZCI6InJlZ2lzdHJ5LmRvY2tlci5pbyIsImV4cCI6MTY1MTc4NjEwMSwiaWF0IjoxNjUxNzg1ODAxLCJpc3MiOiJhdXRoLmRvY2tlci5pbyIsImp0aSI6IjNDeVdDQWYyRzROQ1lnVnk3RjAyIiwibmJmIjoxNjUxNzg1NTAxLCJzdWIiOiIifQ.cqwVoa9FtxbMTPkmK3YmdjYGP8ZutTZYHRreEHF0SEK2JVExges3Vb6L1ifJ5PbYiXAaMPybtTifPq39Uvuc3SAdY7ct5c4QXiwKMutbaAEe2yaukG3-6qwgbMJkKI-STIhc7qnTYu7kZ3pDzjqmVANAeRy8MtGdHV5K0CD95pXg7AwBBL7QINkJV-HCIbTVj5pMOitDbroWK90_ofwtpKwkrxu4zRjvWfebpYFFjqYEcT8mnUP-nL1Nq01tw3qRwHSk2pcYbbxihxQdjS9pTXxbDSbr-bdm1_SKLsjm8awfaUHltbPLSL1FqMymZV9aKAzOMrptiCBzs2uRauZLXw"
+time="2022-05-05T21:23:21Z" level=debug msg="Doing a HEAD request to fetch a digest" url="https://index.docker.io/v2/frankietheface/node-devops/manifests/latest"
+time="2022-05-05T21:23:22Z" level=debug msg="Found a remote digest to compare with" remote="sha256:8e2b76a53161fc00f27a91b091021b7b23a854e5d14b242b03c14f2d75e34ebf"
+time="2022-05-05T21:23:22Z" level=debug msg=Comparing local="sha256:8e2b76a53161fc00f27a91b091021b7b23a854e5d14b242b03c14f2d75e34ebf" remote="sha256:8e2b76a53161fc00f27a91b091021b7b23a854e5d14b242b03c14f2d75e34ebf"
+time="2022-05-05T21:23:22Z" level=debug msg="Found a match"
+time="2022-05-05T21:23:22Z" level=debug msg="No pull needed. Skipping image."
+time="2022-05-05T21:23:22Z" level=debug msg="No new images found for /node-devops_node-devops_1"
+time="2022-05-05T21:23:22Z" level=info msg="Session done" Failed=0 Scanned=1 Updated=0 notify=no
+time="2022-05-05T21:23:22Z" level=debug msg="Scheduled next run: 2022-05-05 21:24:11 +0000 UTC"
+
+                                
+
+#20220506
+
+docker swarm (orchestrator)
+
+
+  node-devops:
+    deploy:
+      replicas: 8
+      restart_policy:
+        condition: any 
+      update_config:
+        parallelism: 2
+        delay: 15s
+
+
+
 
 11:44, 00:11
 
